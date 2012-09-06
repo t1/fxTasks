@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?scenebuilder-stylesheet fxTasks.css?>
+<?stylesheet true:fxTasks.css?>
+
+<AnchorPane id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml" fx:controller="fxtasks.control.MainPaneController">
+  <children>
+    <VBox prefHeight="500.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <MenuBar useSystemMenuBar="true">
+          <menus>
+            <Menu mnemonicParsing="false" text="File">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#createTask" text="New Task" fx:id="newTaskMenuItem" />
+                <MenuItem disable="true" mnemonicParsing="false" text="New Category" />
+                <MenuItem mnemonicParsing="false" text="Close" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Edit">
+              <items>
+                <MenuItem mnemonicParsing="false" text="Delete" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Window">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#minimize" text="Minimize" />
+                <MenuItem mnemonicParsing="false" onAction="#zoom" text="Zoom" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+              <items>
+                <MenuItem mnemonicParsing="false" text="About" />
+              </items>
+            </Menu>
+          </menus>
+        </MenuBar>
+        <ToolBar>
+          <items>
+            <Button focusTraversable="false" mnemonicParsing="false" text="Button" />
+          </items>
+        </ToolBar>
+        <HBox prefHeight="254.0" prefWidth="800.0" VBox.vgrow="ALWAYS">
+          <children>
+            <VBox prefHeight="414.0" prefWidth="150.0" HBox.hgrow="NEVER">
+              <children>
+                <AnchorPane fx:id="categories" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                <ToolBar>
+                  <items>
+                    <Button focusTraversable="false" mnemonicParsing="false" onAction="#createCategory" text="+">
+                      <font>
+                        <Font name="System Bold" size="13.0" fx:id="x1" />
+                      </font>
+                      <tooltip>
+                        <Tooltip text="Create a new category to organize your tasks" />
+                      </tooltip>
+                    </Button>
+                  </items>
+                </ToolBar>
+              </children>
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+              <children>
+                <ScrollPane id="ScrollPane" fitToWidth="true" pannable="true" prefViewportHeight="414.0" prefViewportWidth="650.0" VBox.vgrow="ALWAYS">
+                  <content>
+                    <VBox fx:id="tasks" alignment="TOP_CENTER">
+                      <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                      </padding>
+                    </VBox>
+                  </content>
+                  <effect>
+                    <InnerShadow choke="0.2517482517482517" color="#0000004d" height="255.0" offsetX="2.0" offsetY="3.0" radius="127.0" width="255.0" />
+                  </effect>
+                </ScrollPane>
+                <ToolBar>
+                  <items>
+                    <Button focusTraversable="false" font="$x1" mnemonicParsing="false" onAction="#createTask" text="+">
+                      <tooltip>
+                        <Tooltip text="Create a new task to work on" />
+                      </tooltip>
+                    </Button>
+                  </items>
+                </ToolBar>
+              </children>
+            </VBox>
+          </children>
+        </HBox>
+      </children>
+    </VBox>
+  </children>
+</AnchorPane>
