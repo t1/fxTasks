@@ -3,15 +3,16 @@ package fxtasks.control;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.beans.*;
 import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
-import fxtasks.model.Task;
+import lombok.extern.slf4j.Slf4j;
+import fxtasks.model.*;
 
+@Slf4j
 public class MainPaneController implements Initializable {
     @FXML
     private MenuItem newTaskMenuItem;
@@ -24,12 +25,7 @@ public class MainPaneController implements Initializable {
 
     private final ObservableList<Task> taskList = FXCollections.observableArrayList();
 
-    private final InvalidationListener invalidationListener = new InvalidationListener() {
-        @Override
-        public void invalidated(Observable arg0) {
-            System.out.println("save");
-        }
-    };
+    private final TaskStore taskStore = new FileBasedTaskStore();
 
     @Override
     public void initialize(URL url, ResourceBundle bundle) {
@@ -41,19 +37,19 @@ public class MainPaneController implements Initializable {
                 while (change.next()) {
                     if (change.wasPermutated()) {
                         for (int i = change.getFrom(); i < change.getTo(); ++i) {
-                            System.out.println("permutate");
+                            log.debug("permutate");
                         }
                     } else if (change.wasUpdated()) {
-                        System.out.println("update item");
+                        log.debug("update item");
                     } else {
                         for (Task removedTask : change.getRemoved()) {
-                            System.out.println("remove: " + removedTask);
-                            removedTask.removeListener(invalidationListener);
+                            log.debug("remove: {}", removedTask);
+                            // removedTask.removeListener(invalidationListener);
                         }
                         for (Task addedTask : change.getAddedSubList()) {
                             TitledPane taskPane = TaskPaneBuilder.create().task(addedTask).build();
                             tasks.getChildren().add(taskPane);
-                            addedTask.addListener(invalidationListener);
+                            // addedTask.addListener(invalidationListener);
                             taskPane.requestFocus();
                         }
                     }
@@ -66,13 +62,13 @@ public class MainPaneController implements Initializable {
 
     @FXML
     public void createCategory() {
-        System.out.println("create category");
+        log.debug("create category");
     }
 
     @FXML
     public void createTask() {
         collapseAllTasks();
-        Task task = Task.create().title("New Task");
+        Task task = taskStore.create().title("New Task");
         taskList.add(task);
     }
 
@@ -85,20 +81,16 @@ public class MainPaneController implements Initializable {
 
     @FXML
     public void minimize() {
-        System.out.println("minimize");
+        log.debug("minimize");
     }
 
     @FXML
     public void zoom() {
-        System.out.println("zoom");
+        log.debug("zoom");
     }
 
     @FXML
     public void mainSwipeRight() {
-        System.out.println("main swipe right");
-    }
-
-    public void treeKey(KeyEvent event) {
-        System.out.println("you typed " + event);
+        log.debug("main swipe right");
     }
 }

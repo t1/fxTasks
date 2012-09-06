@@ -45,18 +45,18 @@ public class TaskPaneController {
         UP(KeyCode.UP) {
             @Override
             public void execute(TaskPaneController controller) {
-                int index = getIndex(controller.pane);
+                int index = controller.getIndex();
                 if (index > 0) {
-                    getSiblings(controller.pane).get(index - 1).requestFocus();
+                    controller.getSiblings().get(index - 1).requestFocus();
                 }
             }
         },
         DOWN(KeyCode.DOWN) {
             @Override
             public void execute(TaskPaneController controller) {
-                int index = getIndex(controller.pane);
-                if (index < getSiblingCount(controller.pane) - 1) {
-                    getSiblings(controller.pane).get(index + 1).requestFocus();
+                int index = controller.getIndex();
+                if (index < controller.getSiblingCount() - 1) {
+                    controller.getSiblings().get(index + 1).requestFocus();
                 }
             }
         },
@@ -64,18 +64,18 @@ public class TaskPaneController {
         SHIFT_UP(KeyCode.UP, SHIFT) {
             @Override
             public void execute(TaskPaneController controller) {
-                int index = getIndex(controller.pane);
+                int index = controller.getIndex();
                 if (index > 0) {
-                    getSiblings(controller.pane).get(index - 1).requestFocus();
+                    controller.getSiblings().get(index - 1).requestFocus();
                 }
             }
         },
         SHIFT_DOWN(KeyCode.DOWN, SHIFT) {
             @Override
             public void execute(TaskPaneController controller) {
-                int index = getIndex(controller.pane);
-                if (index < getSiblingCount(controller.pane) - 1) {
-                    getSiblings(controller.pane).get(index + 1).requestFocus();
+                int index = controller.getIndex();
+                if (index < controller.getSiblingCount() - 1) {
+                    controller.getSiblings().get(index + 1).requestFocus();
                 }
             }
         },
@@ -83,13 +83,13 @@ public class TaskPaneController {
         ALT_UP(KeyCode.UP, ALT) {
             @Override
             public void execute(TaskPaneController controller) {
-                moveSibling(controller.pane, -1);
+                controller.moveSibling(-1);
             }
         },
         ALT_DOWN(KeyCode.DOWN, ALT) {
             @Override
             public void execute(TaskPaneController controller) {
-                moveSibling(controller.pane, +1);
+                controller.moveSibling(+1);
             }
         },
         ;
@@ -102,35 +102,8 @@ public class TaskPaneController {
             this.keyModifiers = KeyModifier.setOf(keyModifiers);
         }
 
-        protected int getIndex(Node pane) {
-            ObservableList<Node> siblings = getSiblings(pane);
-            for (int i = 0; i < siblings.size(); i++) {
-                if (pane == siblings.get(i)) {
-                    return i;
-                }
-            }
-            throw new IllegalStateException();
-        }
-
-        protected int getSiblingCount(Node pane) {
-            return getSiblings(pane).size();
-        }
-
-        protected ObservableList<Node> getSiblings(Node pane) {
-            Pane parent = (Pane) pane.getParent();
-            return parent.getChildren();
-        }
-
-        protected void moveSibling(TitledPane pane, int offset) {
-            ObservableList<Node> siblings = getSiblings(pane);
-            int index = getIndex(pane);
-            siblings.remove(index);
-            siblings.add(index + offset, pane);
-        }
-
         public boolean matches(KeyEvent event) {
-            return "KEY_RELEASED".equals(event.getEventType().getName()) && code.equals(event.getCode())
-                    && KeyModifier.of(event).equals(keyModifiers);
+            return code.equals(event.getCode()) && KeyModifier.of(event).equals(keyModifiers);
         }
 
         public abstract void execute(TaskPaneController controller);
@@ -146,10 +119,37 @@ public class TaskPaneController {
 
     public void handle(KeyEvent event) {
         for (KeyBinding binding : KeyBinding.values()) {
-            if (binding.matches(event)) {
+            if ("KEY_RELEASED".equals(event.getEventType().getName()) && binding.matches(event)) {
                 binding.execute(this);
                 return;
             }
         }
     }
+
+    protected int getIndex() {
+        ObservableList<Node> siblings = getSiblings();
+        for (int i = 0; i < siblings.size(); i++) {
+            if (pane == siblings.get(i)) {
+                return i;
+            }
+        }
+        throw new IllegalStateException();
+    }
+
+    protected int getSiblingCount() {
+        return getSiblings().size();
+    }
+
+    protected ObservableList<Node> getSiblings() {
+        Pane parent = (Pane) pane.getParent();
+        return parent.getChildren();
+    }
+
+    protected void moveSibling(int offset) {
+        ObservableList<Node> siblings = getSiblings();
+        int index = getIndex();
+        siblings.remove(index);
+        siblings.add(index + offset, pane);
+    }
+
 }
