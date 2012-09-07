@@ -113,9 +113,13 @@ abstract class AbstractTask implements Task {
         return this;
     }
 
+    public ImmutableList<Property<?>> getAllProperties() {
+        return ImmutableList.<Property<?>> of(title, done, expanded);
+    }
+
     @Override
     public ImmutableList<Property<?>> getProperties() {
-        return ImmutableList.<Property<?>> of(title, done, expanded);
+        return ImmutableList.<Property<?>> of(title, done);
     }
 
     @Override
