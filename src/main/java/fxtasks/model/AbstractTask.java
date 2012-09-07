@@ -3,12 +3,19 @@ package fxtasks.model;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
+
+import javax.xml.bind.annotation.*;
+
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Fluent, but "Straight forward" JavaFX style bean, that's JAXB-marshallable, except for the expanded property.
+ */
 @Slf4j
+@XmlRootElement
 @EqualsAndHashCode
 abstract class AbstractTask implements Task {
 
@@ -33,6 +40,10 @@ abstract class AbstractTask implements Task {
     {
         done.addListener(new LogChangeListener("done"));
     }
+    private final BooleanProperty expanded = new SimpleBooleanProperty();
+    {
+        expanded.addListener(new LogChangeListener("expanded"));
+    }
 
     @Override
     public StringProperty titleProperty() {
@@ -42,6 +53,16 @@ abstract class AbstractTask implements Task {
     @Override
     public String title() {
         return titleProperty().get();
+    }
+
+    @XmlElement
+    private String getTitle() {
+        return title();
+    }
+
+    @SuppressWarnings("unused")
+    private void setTitle(String newTitle) {
+        title(newTitle);
     }
 
     @Override
@@ -60,6 +81,16 @@ abstract class AbstractTask implements Task {
         return done.get();
     }
 
+    @XmlElement
+    private boolean getDone() {
+        return done();
+    }
+
+    @SuppressWarnings("unused")
+    private void setDone(boolean newDone) {
+        done(newDone);
+    }
+
     @Override
     public Task done(boolean newDone) {
         done.set(newDone);
@@ -67,8 +98,24 @@ abstract class AbstractTask implements Task {
     }
 
     @Override
+    public Property<Boolean> expandedProperty() {
+        return expanded;
+    }
+
+    @Override
+    public boolean expanded() {
+        return expandedProperty().getValue();
+    }
+
+    @Override
+    public Task expanded(boolean newExpanded) {
+        expandedProperty().setValue(newExpanded);
+        return this;
+    }
+
+    @Override
     public ImmutableList<Property<?>> getProperties() {
-        return ImmutableList.<Property<?>> of(titleProperty(), done);
+        return ImmutableList.<Property<?>> of(title, done, expanded);
     }
 
     @Override
@@ -83,5 +130,10 @@ abstract class AbstractTask implements Task {
         for (Property<?> property : getProperties()) {
             property.addListener(invalidationListener);
         }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[title=" + title.get() + "; done=" + done.get() + "]";
     }
 }

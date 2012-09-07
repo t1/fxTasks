@@ -23,13 +23,13 @@ public class MainPaneController implements Initializable {
     @FXML
     private VBox tasks;
 
-    private final TaskStore taskStore = new FileBasedTaskStore();
+    private TaskStore taskStore;
 
     @Override
     public void initialize(URL url, ResourceBundle bundle) {
         newTaskMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
 
-        taskStore.addListener(new ListChangeListener<Task>() {
+        taskStore = new FileBasedTaskStore(new ListChangeListener<Task>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Task> change) {
                 while (change.next()) {
@@ -42,20 +42,19 @@ public class MainPaneController implements Initializable {
                     } else {
                         for (Task removedTask : change.getRemoved()) {
                             log.debug("remove: {}", removedTask);
-                            // removedTask.removeListener(invalidationListener);
                         }
                         for (Task addedTask : change.getAddedSubList()) {
                             TitledPane taskPane = TaskPaneBuilder.create().task(addedTask).build();
                             tasks.getChildren().add(taskPane);
-                            // addedTask.addListener(invalidationListener);
                             taskPane.requestFocus();
+                            TextField titleField = TaskPaneController.of(taskPane).getTitleField();
+                            titleField.selectAll();
+                            titleField.requestFocus();
                         }
                     }
                 }
             }
         });
-
-        collapseAllTasks();
     }
 
     @FXML
@@ -66,8 +65,7 @@ public class MainPaneController implements Initializable {
     @FXML
     public void createTask() {
         collapseAllTasks();
-        Task task = taskStore.create().title("New Task");
-        taskStore.add(task);
+        taskStore.create().title("New Task").expanded(true);
     }
 
     public void collapseAllTasks() {

@@ -6,12 +6,16 @@ import java.util.EnumSet;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import fxtasks.model.Task;
 
 public class TaskPaneController {
+    public static TaskPaneController of(TitledPane pane) {
+        return (TaskPaneController) pane.getUserData();
+    }
+
     private enum KeyBinding {
         LEFT(KeyCode.LEFT) {
             @Override
@@ -152,4 +156,8 @@ public class TaskPaneController {
         siblings.add(index + offset, pane);
     }
 
+    public TextField getTitleField() {
+        Pane graphic = (Pane) pane.getGraphic();
+        return (TextField) graphic.getChildren().get(0);
+    }
 }

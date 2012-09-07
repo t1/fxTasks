@@ -19,10 +19,15 @@ public interface Task {
 
     public Task done(boolean newDone);
 
+    public boolean expanded();
+
+    public Task expanded(boolean newExpanded);
+
+    public Property<Boolean> expandedProperty();
+
     public ImmutableList<Property<?>> getProperties();
 
     public void removeListener(InvalidationListener invalidationListener);
 
     public void addListener(InvalidationListener invalidationListener);
-
 }

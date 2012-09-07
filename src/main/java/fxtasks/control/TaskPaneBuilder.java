@@ -19,8 +19,7 @@ public class TaskPaneBuilder {
         @Override
         public void handle(KeyEvent event) {
             TitledPane pane = (TitledPane) event.getSource();
-            TaskPaneController controller = (TaskPaneController) pane.getUserData();
-            controller.handle(event);
+            TaskPaneController.of(pane).handle(event);
         }
     }
 
@@ -45,10 +44,11 @@ public class TaskPaneBuilder {
     public TitledPane build() {
         if (task == null)
             throw new IllegalStateException("set task before calling build()");
-        TitledPane taskPane = TitledPaneBuilder.create().animated(true).expanded(true).effect(SHADOW.build()) //
+        TitledPane taskPane = TitledPaneBuilder.create().animated(true).effect(SHADOW.build()) //
         .content(buildContent()).graphic(buildChildren()) //
         .onKeyReleased(new TaskPaneKeyEventHandler()).build();
         taskPane.setUserData(new TaskPaneController(task, taskPane));
+        taskPane.expandedProperty().bindBidirectional(task.expandedProperty());
         return taskPane;
     }
 
