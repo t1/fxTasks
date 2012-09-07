@@ -13,24 +13,29 @@ import com.google.common.collect.ImmutableList;
 abstract class AbstractTask implements Task {
 
     private final class LogChangeListener implements ChangeListener<Object> {
+        private final String format;
+
+        public LogChangeListener(String propertyName) {
+            format = propertyName + ": {} -> {}";
+        }
+
         @Override
         public void changed(ObservableValue<?> property, Object oldValue, Object newValue) {
-            // String propertyName = ((ReadOnlyProperty<?>) property).getName();
-            // log.debug("{}: {} -> {}", new Object[] { propertyName, oldValue, newValue });
+            log.debug(format, oldValue, newValue);
         }
     }
 
-    private StringProperty title;
+    private final StringProperty title = new SimpleStringProperty();
+    {
+        title.addListener(new LogChangeListener("title"));
+    }
     private final BooleanProperty done = new SimpleBooleanProperty();
-
-    // done.addListener(new LogChangeListener());
+    {
+        done.addListener(new LogChangeListener("done"));
+    }
 
     @Override
     public StringProperty titleProperty() {
-        if (title == null) {
-            title = new SimpleStringProperty(this, "title");
-            title.addListener(new LogChangeListener());
-        }
         return title;
     }
 

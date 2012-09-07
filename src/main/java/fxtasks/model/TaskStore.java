@@ -1,6 +1,8 @@
 package fxtasks.model;
 
-public interface TaskStore {
+import javafx.collections.ObservableList;
+
+public interface TaskStore extends ObservableList<Task> {
 
     public Task create();
 

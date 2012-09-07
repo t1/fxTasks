@@ -3,7 +3,7 @@ package fxtasks.control;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.collections.*;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -23,15 +23,13 @@ public class MainPaneController implements Initializable {
     @FXML
     private VBox tasks;
 
-    private final ObservableList<Task> taskList = FXCollections.observableArrayList();
-
     private final TaskStore taskStore = new FileBasedTaskStore();
 
     @Override
     public void initialize(URL url, ResourceBundle bundle) {
         newTaskMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
 
-        taskList.addListener(new ListChangeListener<Task>() {
+        taskStore.addListener(new ListChangeListener<Task>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Task> change) {
                 while (change.next()) {
@@ -69,7 +67,7 @@ public class MainPaneController implements Initializable {
     public void createTask() {
         collapseAllTasks();
         Task task = taskStore.create().title("New Task");
-        taskList.add(task);
+        taskStore.add(task);
     }
 
     public void collapseAllTasks() {

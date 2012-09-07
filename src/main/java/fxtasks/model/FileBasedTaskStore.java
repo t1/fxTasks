@@ -4,14 +4,19 @@ import java.nio.file.*;
 
 import javafx.beans.*;
 import javafx.beans.property.ReadOnlyProperty;
+import javafx.collections.*;
+import lombok.Delegate;
 
 public class FileBasedTaskStore implements TaskStore {
+
+    @Delegate
+    private final ObservableList<Task> taskList = FXCollections.observableArrayList();
 
     private class SaveListener implements InvalidationListener {
         @Override
         public void invalidated(Observable observable) {
             ReadOnlyProperty<?> property = (ReadOnlyProperty<?>) observable;
-            System.out.println(property.getName() + "@" + FileBasedTaskStore.this.rootPath.toAbsolutePath());
+            System.out.println("save: " + property.getName() + "@" + FileBasedTaskStore.this.rootPath.toAbsolutePath());
         }
     }
 
