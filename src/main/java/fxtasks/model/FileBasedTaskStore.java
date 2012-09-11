@@ -27,7 +27,15 @@ public class FileBasedTaskStore implements TaskStore {
         }
     };
 
-    private static final Path ROOT_PATH = Paths.get("store");
+    private static final Path ROOT_PATH = rootPath();
+
+    private static Path rootPath() {
+        Path basePath = Paths.get(System.getProperty("user.home"));
+        if ("Mac OS X".equals(System.getProperty("os.name")))
+            basePath = basePath.resolve("Library/Application Support");
+        return basePath.resolve("fxTasks/store");
+    }
+
     private static final Path FIRST_FILE_PATH = ROOT_PATH.resolve(".first");
 
     @VisibleForTesting
