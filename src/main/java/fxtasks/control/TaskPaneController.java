@@ -9,43 +9,24 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
-import fxtasks.model.Task;
+import fxtasks.model.*;
 
 public class TaskPaneController {
     public static TaskPaneController of(TitledPane pane) {
         return (TaskPaneController) pane.getUserData();
     }
 
-    private enum KeyBinding {
-        LEFT(KeyCode.LEFT) {
-            @Override
-            public void execute(TaskPaneController controller) {
-                if (controller.pane.isExpanded())
-                    controller.pane.setExpanded(false);
-                // else con
+    public static TaskPaneController of(Pane tasks, Task removedTask) {
+        for (Node child : tasks.getChildren()) {
+            TaskPaneController pane = TaskPaneController.of((TitledPane) child);
+            if (removedTask.equals(pane.task)) {
+                return pane;
             }
-        },
-        RIGHT(KeyCode.RIGHT) {
-            @Override
-            public void execute(TaskPaneController controller) {
-                controller.pane.setExpanded(true);
-            }
-        },
-        ALT_LEFT(KeyCode.LEFT, ALT) {
-            @Override
-            public void execute(TaskPaneController controller) {
-                if (controller.pane.isExpanded())
-                    controller.pane.setExpanded(false);
-                // else
-            }
-        },
-        ALT_RIGHT(KeyCode.RIGHT, ALT) {
-            @Override
-            public void execute(TaskPaneController controller) {
-                controller.pane.setExpanded(true);
-            }
-        },
+        }
+        return null;
+    }
 
+    private enum KeyBinding {
         UP(KeyCode.UP) {
             @Override
             public void execute(TaskPaneController controller) {
@@ -62,6 +43,20 @@ public class TaskPaneController {
                 if (index < controller.getSiblingCount() - 1) {
                     controller.getSiblings().get(index + 1).requestFocus();
                 }
+            }
+        },
+        LEFT(KeyCode.LEFT) {
+            @Override
+            public void execute(TaskPaneController controller) {
+                if (controller.pane.isExpanded())
+                    controller.pane.setExpanded(false);
+                // else con
+            }
+        },
+        RIGHT(KeyCode.RIGHT) {
+            @Override
+            public void execute(TaskPaneController controller) {
+                controller.pane.setExpanded(true);
             }
         },
 
@@ -87,13 +82,25 @@ public class TaskPaneController {
         ALT_UP(KeyCode.UP, ALT) {
             @Override
             public void execute(TaskPaneController controller) {
-                controller.moveSibling(-1);
+                controller.store.moveUp(controller.task);
             }
         },
         ALT_DOWN(KeyCode.DOWN, ALT) {
             @Override
             public void execute(TaskPaneController controller) {
-                controller.moveSibling(+1);
+                controller.store.moveDown(controller.task);
+            }
+        },
+        ALT_LEFT(KeyCode.LEFT, ALT) {
+            @Override
+            public void execute(TaskPaneController controller) {
+                controller.store.moveOut(controller.task);
+            }
+        },
+        ALT_RIGHT(KeyCode.RIGHT, ALT) {
+            @Override
+            public void execute(TaskPaneController controller) {
+                controller.store.moveIn(controller.task);
             }
         },
         ;
@@ -114,9 +121,11 @@ public class TaskPaneController {
     }
 
     private final Task task;
+    private final TaskStore store;
     private final TitledPane pane;
 
-    public TaskPaneController(Task task, TitledPane pane) {
+    public TaskPaneController(TaskStore store, Task task, TitledPane pane) {
+        this.store = store;
         this.task = task;
         this.pane = pane;
     }
@@ -149,15 +158,13 @@ public class TaskPaneController {
         return parent.getChildren();
     }
 
-    protected void moveSibling(int offset) {
-        ObservableList<Node> siblings = getSiblings();
-        int index = getIndex();
-        siblings.remove(index);
-        siblings.add(index + offset, pane);
-    }
-
     public TextField getTitleField() {
         Pane graphic = (Pane) pane.getGraphic();
         return (TextField) graphic.getChildren().get(0);
+    }
+
+    public boolean remove() {
+        Pane parent = (Pane) pane.getParent();
+        return parent.getChildren().remove(pane);
     }
 }

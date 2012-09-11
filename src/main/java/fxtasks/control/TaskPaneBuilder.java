@@ -11,7 +11,7 @@ import javafx.scene.paint.Color;
 
 import com.google.common.collect.ImmutableList;
 
-import fxtasks.model.Task;
+import fxtasks.model.*;
 
 public class TaskPaneBuilder {
 
@@ -31,6 +31,16 @@ public class TaskPaneBuilder {
     }
 
     private Task task;
+    private TaskStore store;
+
+    public TaskPaneBuilder taskStore(TaskStore taskStore) {
+        if (store != null)
+            throw new IllegalStateException("task store already set");
+        if (taskStore == null)
+            throw new NullPointerException();
+        this.store = taskStore;
+        return this;
+    }
 
     public TaskPaneBuilder task(Task newTask) {
         if (task != null)
@@ -44,10 +54,12 @@ public class TaskPaneBuilder {
     public TitledPane build() {
         if (task == null)
             throw new IllegalStateException("set task before calling build()");
+        if (store == null)
+            throw new IllegalStateException("set task store before calling build()");
         TitledPane taskPane = TitledPaneBuilder.create().animated(true).effect(SHADOW.build()) //
         .content(buildContent()).graphic(buildChildren()) //
         .onKeyReleased(new TaskPaneKeyEventHandler()).build();
-        taskPane.setUserData(new TaskPaneController(task, taskPane));
+        taskPane.setUserData(new TaskPaneController(store, task, taskPane));
         taskPane.expandedProperty().bindBidirectional(task.expandedProperty());
         return taskPane;
     }

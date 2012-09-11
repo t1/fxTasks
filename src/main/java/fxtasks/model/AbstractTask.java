@@ -138,6 +138,6 @@ abstract class AbstractTask implements Task {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[title=" + title.get() + "; done=" + done.get() + "]";
+        return "<" + title.get() + (done() ? ",done" : "") + ">";
     }
 }

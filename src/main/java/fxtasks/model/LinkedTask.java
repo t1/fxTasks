@@ -2,45 +2,82 @@ package fxtasks.model;
 
 import javax.xml.bind.annotation.*;
 
-import lombok.EqualsAndHashCode;
+import com.google.common.base.Function;
 
 @XmlRootElement
-@EqualsAndHashCode(callSuper = true)
-class FileBasedTask extends AbstractTask {
+class LinkedTask extends AbstractTask {
 
     @XmlTransient
     private String id;
 
     @XmlAttribute
-    private String nextId;
+    String nextId;
 
     @XmlAttribute
-    private String previousId;
+    String previousId;
+
+    private transient Function<String, LinkedTask> resolver;
+
+    public LinkedTask resolver(Function<String, LinkedTask> resolver) {
+        this.resolver = resolver;
+        return this;
+    }
+
+    @Override
+    public LinkedTask title(String title) {
+        super.title(title);
+        return this;
+    }
 
     public String id() {
         return id;
     }
 
-    public FileBasedTask id(String newId) {
-        this.id = newId;
+    LinkedTask id(String id) {
+        this.id = id;
         return this;
     }
 
-    public String nextId() {
-        return nextId;
+    public LinkedTask next() {
+        return resolver.apply(nextId);
     }
 
-    public FileBasedTask nextId(String newNextId) {
-        this.nextId = newNextId;
+    public LinkedTask next(LinkedTask next) {
+        this.nextId = (next == null) ? null : next.id;
         return this;
     }
 
-    public String previousId() {
-        return previousId;
+    public LinkedTask previous() {
+        return resolver.apply(previousId);
     }
 
-    public FileBasedTask previousId(String newPreviousId) {
-        this.previousId = newPreviousId;
+    public LinkedTask previous(LinkedTask previous) {
+        this.previousId = (previous == null) ? null : previous.id;
         return this;
+    }
+
+    public boolean isFirst() {
+        return previousId == null;
+    }
+
+    public boolean isLast() {
+        return nextId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LinkedTask that = (LinkedTask) obj;
+        return this.id.equals(that.id);
     }
 }
