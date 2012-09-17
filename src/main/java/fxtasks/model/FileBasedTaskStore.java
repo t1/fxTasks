@@ -4,7 +4,6 @@ import static com.google.common.base.Charsets.*;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.UUID;
 
 import javafx.beans.*;
 import javafx.collections.*;
@@ -19,10 +18,10 @@ import com.google.common.base.Function;
 
 @Slf4j
 public class FileBasedTaskStore implements TaskStore {
-    private final Function<String, LinkedTask> taskIdResolver = new Function<String, LinkedTask>() {
+    private final Function<TaskId, LinkedTask> taskIdResolver = new Function<TaskId, LinkedTask>() {
         @Override
         @Nullable
-        public LinkedTask apply(@Nullable String id) {
+        public LinkedTask apply(@Nullable TaskId id) {
             return getById(id);
         }
     };
@@ -36,10 +35,28 @@ public class FileBasedTaskStore implements TaskStore {
         return basePath.resolve("fxTasks/store");
     }
 
-    private static final Path FIRST_FILE_PATH = ROOT_PATH.resolve(".first");
-
     @VisibleForTesting
     final ObservableList<LinkedTask> taskList = FXCollections.observableArrayList();
+
+    @VisibleForTesting
+    final ObservableMap<TaskId, TaskStore> children = FXCollections.observableHashMap();
+
+    private final Path rootPath;
+    private final Path firstFilePath;
+
+    public FileBasedTaskStore() {
+        this(ROOT_PATH);
+    }
+
+    public FileBasedTaskStore(Path rootPath) {
+        this.rootPath = rootPath;
+        this.firstFilePath = rootPath.resolve(".first");
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + rootPath + "|" + taskList.size() + "|" + children.size() + "]";
+    }
 
     @Override
     public void addListener(ListChangeListener<Task> listChangeListener) {
@@ -56,25 +73,25 @@ public class FileBasedTaskStore implements TaskStore {
     }
 
     private void doLoad() throws IOException {
-        if (!Files.exists(ROOT_PATH))
-            Files.createDirectories(ROOT_PATH);
-        if (Files.exists(FIRST_FILE_PATH)) {
-            String firstId = new String(Files.readAllBytes(FIRST_FILE_PATH));
+        if (!Files.exists(rootPath))
+            Files.createDirectories(rootPath);
+        if (Files.exists(firstFilePath)) {
+            TaskId firstId = TaskId.of(Files.readAllBytes(firstFilePath));
             load(firstId);
         }
     }
 
-    private void load(String id) throws IOException {
-        String previousId = null;
+    private void load(TaskId id) throws IOException {
+        TaskId previousId = null;
         do {
-            Path path = ROOT_PATH.resolve(id);
+            Path path = rootPath.resolve(id.asString());
             try (Reader reader = Files.newBufferedReader(path, UTF_8)) {
                 LinkedTask task = JAXB.unmarshal(reader, LinkedTask.class);
-                assert task.previousId == previousId;
+                assert task.previousId() == previousId;
                 task.resolver(taskIdResolver).id(id);
                 add(task);
                 previousId = id;
-                id = task.nextId;
+                id = task.nextId();
             }
         } while (id != null);
     }
@@ -91,7 +108,7 @@ public class FileBasedTaskStore implements TaskStore {
 
     @Override
     public LinkedTask create() {
-        LinkedTask task = new LinkedTask().resolver(taskIdResolver).id(UUID.randomUUID().toString());
+        LinkedTask task = new LinkedTask().resolver(taskIdResolver).id(TaskId.random());
         if (taskList.isEmpty()) {
             add(task);
             saveFirst();
@@ -109,7 +126,8 @@ public class FileBasedTaskStore implements TaskStore {
     protected void saveFirst() {
         // TODO only if necessary
         try {
-            Files.write(FIRST_FILE_PATH, taskList.get(0).id().getBytes());
+            Files.createDirectories(firstFilePath.getParent());
+            Files.write(firstFilePath, taskList.get(0).id().asString().getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -118,7 +136,7 @@ public class FileBasedTaskStore implements TaskStore {
     @VisibleForTesting
     protected void save(LinkedTask task) {
         log.debug("save: {} @ {}", task.title(), task.id());
-        try (Writer writer = Files.newBufferedWriter(ROOT_PATH.resolve(task.id()), UTF_8)) {
+        try (Writer writer = Files.newBufferedWriter(rootPath.resolve(task.id().asString()), UTF_8)) {
             JAXB.marshal(task, writer);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -209,7 +227,7 @@ public class FileBasedTaskStore implements TaskStore {
         log.debug("--> {}", taskList);
     }
 
-    public LinkedTask getById(String id) {
+    public LinkedTask getById(TaskId id) {
         if (id == null)
             return null;
         for (LinkedTask task : taskList) {
@@ -228,5 +246,27 @@ public class FileBasedTaskStore implements TaskStore {
     @Override
     public void moveOut(Task task) {
         log.debug("move out {}", task);
+    }
+
+    @Override
+    public Task createChildOf(Task parent) {
+        TaskId parentId = ((LinkedTask) parent).id();
+        TaskStore childStore = children.get(parentId);
+        if (childStore == null) {
+            Path childPath = rootPath.resolve(parentId.asString() + "@");
+            childStore = new FileBasedTaskStore(childPath);
+            children.put(parentId, childStore);
+        }
+        return childStore.create();
+    }
+
+    @Override
+    public void delete(Task task) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void removeChildOf(Task parent, Task child) {
+        // TODO Auto-generated method stub
     }
 }

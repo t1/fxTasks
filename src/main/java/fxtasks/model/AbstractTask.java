@@ -40,6 +40,7 @@ abstract class AbstractTask implements Task {
         return title();
     }
 
+    // required for JAXB
     @SuppressWarnings("unused")
     private void setTitle(String newTitle) {
         title(newTitle);
@@ -66,6 +67,7 @@ abstract class AbstractTask implements Task {
         return done();
     }
 
+    // required for JAXB
     @SuppressWarnings("unused")
     private void setDone(boolean newDone) {
         done(newDone);
@@ -83,16 +85,16 @@ abstract class AbstractTask implements Task {
     }
 
     @Override
-    public void removeListener(InvalidationListener invalidationListener) {
+    public void addListener(InvalidationListener invalidationListener) {
         for (Property<?> property : getProperties()) {
-            property.removeListener(invalidationListener);
+            property.addListener(invalidationListener);
         }
     }
 
     @Override
-    public void addListener(InvalidationListener invalidationListener) {
+    public void removeListener(InvalidationListener invalidationListener) {
         for (Property<?> property : getProperties()) {
-            property.addListener(invalidationListener);
+            property.removeListener(invalidationListener);
         }
     }
 

@@ -227,4 +227,17 @@ public class FileBasedTaskStoreTest {
         assertEquals(0, saved.size());
         assertEquals(ImmutableList.of(one, two, three, four), store.taskList);
     }
+
+    @Test
+    public void shouldAddSubtask() throws Exception {
+        LinkedTask one = store.create().title("one");
+        resetSaved();
+
+        Task sub1 = store.createChildOf(one).title("sub1");
+
+        assertEquals(0, saved.size());
+        assertEquals(ImmutableList.of(one), store.taskList);
+        assertEquals(1, store.children.size());
+        assertEquals(ImmutableList.of(sub1), ((FileBasedTaskStore) store.children.get(one.id())).taskList);
+    }
 }

@@ -8,7 +8,7 @@ import com.google.common.base.Function;
 class LinkedTask extends AbstractTask {
 
     @XmlTransient
-    private String id;
+    private TaskId id;
 
     @XmlAttribute
     String nextId;
@@ -16,9 +16,9 @@ class LinkedTask extends AbstractTask {
     @XmlAttribute
     String previousId;
 
-    private transient Function<String, LinkedTask> resolver;
+    private transient Function<TaskId, LinkedTask> resolver;
 
-    public LinkedTask resolver(Function<String, LinkedTask> resolver) {
+    public LinkedTask resolver(Function<TaskId, LinkedTask> resolver) {
         this.resolver = resolver;
         return this;
     }
@@ -29,30 +29,38 @@ class LinkedTask extends AbstractTask {
         return this;
     }
 
-    public String id() {
+    public TaskId id() {
         return id;
     }
 
-    LinkedTask id(String id) {
+    LinkedTask id(TaskId id) {
         this.id = id;
         return this;
     }
 
+    public TaskId nextId() {
+        return (nextId == null) ? null : TaskId.of(nextId);
+    }
+
     public LinkedTask next() {
-        return resolver.apply(nextId);
+        return resolver.apply(nextId());
     }
 
     public LinkedTask next(LinkedTask next) {
-        this.nextId = (next == null) ? null : next.id;
+        this.nextId = (next == null) ? null : next.id.asString();
         return this;
     }
 
+    public TaskId previousId() {
+        return (previousId == null) ? null : TaskId.of(previousId);
+    }
+
     public LinkedTask previous() {
-        return resolver.apply(previousId);
+        return resolver.apply(previousId());
     }
 
     public LinkedTask previous(LinkedTask previous) {
-        this.previousId = (previous == null) ? null : previous.id;
+        this.previousId = (previous == null) ? null : previous.id.asString();
         return this;
     }
 
