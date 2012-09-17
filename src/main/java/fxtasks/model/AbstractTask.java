@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Fluent, but "Straight forward" JavaFX style bean, that's JAXB-marshallable, except for the expanded property.
+ * Fluent, but "Straight forward" JavaFX style bean, that's JAXB-marshallable.
  */
 @Slf4j
 @XmlRootElement
@@ -39,10 +39,6 @@ abstract class AbstractTask implements Task {
     private final BooleanProperty done = new SimpleBooleanProperty();
     {
         done.addListener(new LogChangeListener("done"));
-    }
-    private final BooleanProperty expanded = new SimpleBooleanProperty();
-    {
-        expanded.addListener(new LogChangeListener("expanded"));
     }
 
     @Override
@@ -95,26 +91,6 @@ abstract class AbstractTask implements Task {
     public Task done(boolean newDone) {
         done.set(newDone);
         return this;
-    }
-
-    @Override
-    public Property<Boolean> expandedProperty() {
-        return expanded;
-    }
-
-    @Override
-    public boolean expanded() {
-        return expandedProperty().getValue();
-    }
-
-    @Override
-    public Task expanded(boolean newExpanded) {
-        expandedProperty().setValue(newExpanded);
-        return this;
-    }
-
-    public ImmutableList<Property<?>> getAllProperties() {
-        return ImmutableList.<Property<?>> of(title, done, expanded);
     }
 
     @Override

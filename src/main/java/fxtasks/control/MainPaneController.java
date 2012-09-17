@@ -100,6 +100,7 @@ public class MainPaneController implements Initializable {
             }
         });
         taskStore.load();
+        collapseAllTasks();
     }
 
     @FXML
@@ -110,7 +111,7 @@ public class MainPaneController implements Initializable {
     @FXML
     public void createTask() {
         collapseAllTasks();
-        taskStore.create().title("New Task").expanded(true);
+        taskStore.create().title("New Task");
     }
 
     public void collapseAllTasks() {
@@ -138,6 +139,7 @@ public class MainPaneController implements Initializable {
             tasks.getChildren().add(offset++, taskPane);
             taskPane.requestFocus();
             TextField titleField = TaskPaneController.of(taskPane).getTitleField();
+            taskPane.setExpanded(true);
             titleField.selectAll();
             titleField.requestFocus();
         }

@@ -60,7 +60,6 @@ public class TaskPaneBuilder {
         .content(buildContent()).graphic(buildChildren()) //
         .onKeyReleased(new TaskPaneKeyEventHandler()).build();
         taskPane.setUserData(new TaskPaneController(store, task, taskPane));
-        taskPane.expandedProperty().bindBidirectional(task.expandedProperty());
         return taskPane;
     }
 
