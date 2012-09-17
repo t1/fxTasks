@@ -5,7 +5,7 @@ import javafx.collections.ListChangeListener;
 public interface TaskStore {
     public Task create();
 
-    void addListener(ListChangeListener<Task> listener);
+    public void addListener(ListChangeListener<Task> listener);
 
     public void load();
 

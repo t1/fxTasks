@@ -32,13 +32,13 @@ abstract class AbstractTask implements Task {
         }
     }
 
-    private final StringProperty title = new SimpleStringProperty();
-    {
-        title.addListener(new LogChangeListener("title"));
-    }
-    private final BooleanProperty done = new SimpleBooleanProperty();
-    {
-        done.addListener(new LogChangeListener("done"));
+    private final StringProperty title = new SimpleStringProperty(this, "title");
+    private final BooleanProperty done = new SimpleBooleanProperty(this, "done");
+
+    public AbstractTask() {
+        for (Property<?> property : getProperties()) {
+            property.addListener(new LogChangeListener(property.getName()));
+        }
     }
 
     @Override
