@@ -2,35 +2,19 @@ package fxtasks.model;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
-import javafx.beans.value.*;
 
 import javax.xml.bind.annotation.*;
 
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.collect.ImmutableList;
 
 /**
  * Fluent, but "Straight forward" JavaFX style bean, that's JAXB-marshallable.
  */
-@Slf4j
 @XmlRootElement
 @EqualsAndHashCode
 abstract class AbstractTask implements Task {
-
-    private final class LogChangeListener implements ChangeListener<Object> {
-        private final String format;
-
-        public LogChangeListener(String propertyName) {
-            format = propertyName + ": {} -> {}";
-        }
-
-        @Override
-        public void changed(ObservableValue<?> property, Object oldValue, Object newValue) {
-            log.debug(format, oldValue, newValue);
-        }
-    }
 
     private final StringProperty title = new SimpleStringProperty(this, "title");
     private final BooleanProperty done = new SimpleBooleanProperty(this, "done");

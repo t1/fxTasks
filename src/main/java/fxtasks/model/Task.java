@@ -21,7 +21,7 @@ public interface Task {
 
     public ImmutableList<Property<?>> getProperties();
 
-    public void removeListener(InvalidationListener invalidationListener);
-
     public void addListener(InvalidationListener invalidationListener);
+
+    public void removeListener(InvalidationListener invalidationListener);
 }
