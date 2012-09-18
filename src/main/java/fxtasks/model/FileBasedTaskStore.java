@@ -1,6 +1,7 @@
 package fxtasks.model;
 
 import static com.google.common.base.Charsets.*;
+import static com.google.common.base.Preconditions.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -26,36 +27,35 @@ public class FileBasedTaskStore implements TaskStore {
         }
     };
 
-    private static final Path ROOT_PATH = rootPath();
-
-    private static Path rootPath() {
+    private static final Path ROOT_PATH;
+    static {
         Path basePath = Paths.get(System.getProperty("user.home"));
         if ("Mac OS X".equals(System.getProperty("os.name")))
             basePath = basePath.resolve("Library/Application Support");
-        return basePath.resolve("fxTasks/store");
+        ROOT_PATH = basePath.resolve("fxTasks/store");
     }
 
     @VisibleForTesting
     final ObservableList<LinkedTask> taskList = FXCollections.observableArrayList();
 
     @VisibleForTesting
-    final ObservableMap<TaskId, TaskStore> children = FXCollections.observableHashMap();
+    final ObservableMap<TaskId, TaskStore> childStores = FXCollections.observableHashMap();
 
-    private final Path rootPath;
+    private final Path path;
     private final Path firstFilePath;
 
     public FileBasedTaskStore() {
         this(ROOT_PATH);
     }
 
-    public FileBasedTaskStore(Path rootPath) {
-        this.rootPath = rootPath;
-        this.firstFilePath = rootPath.resolve(".first");
+    public FileBasedTaskStore(Path path) {
+        this.path = path;
+        this.firstFilePath = path.resolve(".first");
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[" + rootPath + "|" + taskList.size() + "|" + children.size() + "]";
+        return getClass().getSimpleName() + "[" + path + "|" + taskList.size() + "|" + childStores.size() + "]";
     }
 
     @Override
@@ -73,8 +73,8 @@ public class FileBasedTaskStore implements TaskStore {
     }
 
     private void doLoad() throws IOException {
-        if (!Files.exists(rootPath))
-            Files.createDirectories(rootPath);
+        if (!Files.exists(path))
+            Files.createDirectories(path);
         if (Files.exists(firstFilePath)) {
             TaskId firstId = TaskId.of(Files.readAllBytes(firstFilePath));
             load(firstId);
@@ -84,8 +84,8 @@ public class FileBasedTaskStore implements TaskStore {
     private void load(TaskId id) throws IOException {
         TaskId previousId = null;
         do {
-            Path path = rootPath.resolve(id.asString());
-            try (Reader reader = Files.newBufferedReader(path, UTF_8)) {
+            Path taskPath = path.resolve(id.asString());
+            try (Reader reader = Files.newBufferedReader(taskPath, UTF_8)) {
                 LinkedTask task = JAXB.unmarshal(reader, LinkedTask.class);
                 assert task.previousId() == previousId;
                 task.resolver(taskIdResolver).id(id);
@@ -136,7 +136,7 @@ public class FileBasedTaskStore implements TaskStore {
     @VisibleForTesting
     protected void save(LinkedTask task) {
         log.debug("save: {} @ {}", task.title(), task.id());
-        try (Writer writer = Files.newBufferedWriter(rootPath.resolve(task.id().asString()), UTF_8)) {
+        try (Writer writer = Files.newBufferedWriter(path.resolve(task.id().asString()), UTF_8)) {
             JAXB.marshal(task, writer);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -227,6 +227,7 @@ public class FileBasedTaskStore implements TaskStore {
         log.debug("--> {}", taskList);
     }
 
+    @Override
     public LinkedTask getById(TaskId id) {
         if (id == null)
             return null;
@@ -251,22 +252,31 @@ public class FileBasedTaskStore implements TaskStore {
     @Override
     public Task createChildOf(Task parent) {
         TaskId parentId = ((LinkedTask) parent).id();
-        TaskStore childStore = children.get(parentId);
+        TaskStore childStore = childStores.get(parentId);
         if (childStore == null) {
-            Path childPath = rootPath.resolve(parentId.asString() + "@");
-            childStore = new FileBasedTaskStore(childPath);
-            children.put(parentId, childStore);
+            Path childPath = path.resolve(parentId.asString() + "@");
+            childStore = createChildStore(childPath);
+            childStores.put(parentId, childStore);
         }
         return childStore.create();
     }
 
+    @VisibleForTesting
+    FileBasedTaskStore createChildStore(Path childPath) {
+        return new FileBasedTaskStore(childPath);
+    }
+
     @Override
     public void delete(Task task) {
-        // TODO Auto-generated method stub
+        checkNotNull(task);
+        boolean removed = taskList.remove(task);
+        checkState(removed, "the task store at " + path + " doesn't contain a task " + task.id());
     }
 
     @Override
     public void removeChildOf(Task parent, Task child) {
-        // TODO Auto-generated method stub
+        TaskStore childStore = childStores.get(parent.id());
+        checkNotNull(childStore, "task " + parent.id() + " has no children");
+        childStore.delete(child);
     }
 }

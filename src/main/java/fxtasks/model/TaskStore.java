@@ -11,6 +11,8 @@ public interface TaskStore {
 
     public void load();
 
+    LinkedTask getById(TaskId id);
+
     public void moveUp(Task task);
 
     public void moveDown(Task task);

@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableList;
 
 public interface Task {
 
+    public TaskId id();
+
     public StringProperty titleProperty();
 
     public String title();

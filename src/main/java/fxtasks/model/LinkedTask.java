@@ -29,6 +29,7 @@ class LinkedTask extends AbstractTask {
         return this;
     }
 
+    @Override
     public TaskId id() {
         return id;
     }

@@ -2,6 +2,7 @@ package fxtasks.model;
 
 import static org.junit.Assert.*;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.Test;
@@ -10,10 +11,15 @@ import com.google.common.collect.*;
 
 public class FileBasedTaskStoreTest {
 
-    private final List<LinkedTask> saved = Lists.newArrayList();
-    private boolean firstSaved = false;
+    private class TestFileBasedTaskStore extends FileBasedTaskStore {
+        public TestFileBasedTaskStore() {
+            super();
+        }
 
-    private final FileBasedTaskStore store = new FileBasedTaskStore() {
+        public TestFileBasedTaskStore(Path path) {
+            super(path);
+        }
+
         @Override
         protected void save(LinkedTask task) {
             if (!saved.contains(task)) {
@@ -25,7 +31,17 @@ public class FileBasedTaskStoreTest {
         protected void saveFirst() {
             firstSaved = true;
         }
-    };
+
+        @Override
+        FileBasedTaskStore createChildStore(Path childPath) {
+            return new TestFileBasedTaskStore(childPath);
+        }
+    }
+
+    private final List<LinkedTask> saved = Lists.newArrayList();
+    private boolean firstSaved = false;
+
+    private final FileBasedTaskStore store = new TestFileBasedTaskStore();
 
     @Test
     public void shouldCreate() throws Exception {
@@ -235,9 +251,21 @@ public class FileBasedTaskStoreTest {
 
         Task sub1 = store.createChildOf(one).title("sub1");
 
+        assertEquals(ImmutableList.of(sub1), saved);
+        assertEquals(ImmutableList.of(one), store.taskList);
+        assertEquals(ImmutableList.of(sub1), ((FileBasedTaskStore) store.childStores.get(one.id())).taskList);
+    }
+
+    @Test
+    public void shouldRemoveSubtask() throws Exception {
+        LinkedTask one = store.create().title("one");
+        Task sub1 = store.createChildOf(one).title("sub1");
+        resetSaved();
+
+        store.removeChildOf(one, sub1);
+
         assertEquals(0, saved.size());
         assertEquals(ImmutableList.of(one), store.taskList);
-        assertEquals(1, store.children.size());
-        assertEquals(ImmutableList.of(sub1), ((FileBasedTaskStore) store.children.get(one.id())).taskList);
+        assertEquals(ImmutableList.of(), ((FileBasedTaskStore) store.childStores.get(one.id())).taskList);
     }
 }
