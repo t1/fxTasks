@@ -11,6 +11,7 @@ import com.google.common.collect.*;
 
 public class FileBasedTaskStoreTest {
 
+    // TODO this is getting ugly... use real IO instead (or maybe mock the FileSystem?)
     private class TestFileBasedTaskStore extends FileBasedTaskStore {
         public TestFileBasedTaskStore() {
             super();
@@ -33,13 +34,26 @@ public class FileBasedTaskStoreTest {
         }
 
         @Override
+        protected void removeFirst() {
+            firstRemoved = true;
+        }
+
+        @Override
         FileBasedTaskStore createChildStore(Path childPath) {
             return new TestFileBasedTaskStore(childPath);
+        }
+
+        @Override
+        void deleteTaskFile(Task task) {
+            deleted.add((LinkedTask) task);
         }
     }
 
     private final List<LinkedTask> saved = Lists.newArrayList();
     private boolean firstSaved = false;
+
+    private final List<LinkedTask> deleted = Lists.newArrayList();
+    private boolean firstRemoved = false;
 
     private final FileBasedTaskStore store = new TestFileBasedTaskStore();
 
@@ -50,6 +64,17 @@ public class FileBasedTaskStoreTest {
         assertEquals("title", created.title());
         assertEquals(created, saved.iterator().next());
         assertTrue(firstSaved);
+    }
+
+    @Test
+    public void shouldRemoveOne() throws Exception {
+        Task created = store.create().title("title");
+        resetSaved();
+
+        store.remove(created);
+
+        assertEquals(0, store.taskList.size());
+        assertTrue(firstRemoved);
     }
 
     @Test

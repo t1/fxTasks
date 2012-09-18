@@ -134,13 +134,27 @@ public class FileBasedTaskStore implements TaskStore {
     }
 
     @VisibleForTesting
+    protected void removeFirst() {
+        try {
+            Files.delete(firstFilePath);
+            Files.delete(firstFilePath.getParent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @VisibleForTesting
     protected void save(LinkedTask task) {
         log.debug("save: {} @ {}", task.title(), task.id());
-        try (Writer writer = Files.newBufferedWriter(path.resolve(task.id().asString()), UTF_8)) {
+        try (Writer writer = Files.newBufferedWriter(getPath(task), UTF_8)) {
             JAXB.marshal(task, writer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Path getPath(Task task) {
+        return path.resolve(task.id().asString());
     }
 
     private LinkedTask lastTask() {
@@ -267,16 +281,34 @@ public class FileBasedTaskStore implements TaskStore {
     }
 
     @Override
-    public void delete(Task task) {
+    public void remove(Task task) {
         checkNotNull(task);
+
+        deleteTaskFile(task);
+
         boolean removed = taskList.remove(task);
         checkState(removed, "the task store at " + path + " doesn't contain a task " + task.id());
+        if (taskList.isEmpty()) {
+            removeFirst();
+        } else {
+            // TODO update first
+        }
+    }
+
+    @VisibleForTesting
+    void deleteTaskFile(Task task) {
+        Path taskPath = getPath(task);
+        try {
+            Files.delete(taskPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void removeChildOf(Task parent, Task child) {
         TaskStore childStore = childStores.get(parent.id());
         checkNotNull(childStore, "task " + parent.id() + " has no children");
-        childStore.delete(child);
+        childStore.remove(child);
     }
 }
