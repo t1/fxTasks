@@ -7,6 +7,7 @@ import com.google.common.base.Function;
 @XmlRootElement
 class LinkedTask extends AbstractTask {
 
+    /** the id is the file name, not /in/ the file */
     @XmlTransient
     private TaskId id;
 
@@ -17,12 +18,6 @@ class LinkedTask extends AbstractTask {
 
     public LinkedTask resolver(Function<TaskId, LinkedTask> resolver) {
         this.resolver = resolver;
-        return this;
-    }
-
-    @Override
-    public LinkedTask title(String title) {
-        super.title(title);
         return this;
     }
 
@@ -62,11 +57,18 @@ class LinkedTask extends AbstractTask {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!super.equals(obj))
-            return false;
         if (getClass() != obj.getClass())
             return false;
         LinkedTask that = (LinkedTask) obj;
         return this.id.equals(that.id);
+    }
+
+    public String title() {
+        return this.<String> getProperty("title").getValue();
+    }
+
+    public LinkedTask title(String title) {
+        this.<String> getProperty("title").setValue(title);
+        return this;
     }
 }

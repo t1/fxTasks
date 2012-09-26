@@ -61,7 +61,7 @@ public class FileBasedTaskStoreTest {
     public void shouldCreate() throws Exception {
         Task created = store.create().title("title");
 
-        assertEquals("title", created.title());
+        assertEquals("title", created.<String> getProperty("title").getValue());
         assertEquals(created, saved.iterator().next());
         assertTrue(firstSaved);
     }
@@ -248,7 +248,8 @@ public class FileBasedTaskStoreTest {
         LinkedTask one = store.create().title("one");
         resetSaved();
 
-        Task sub1 = store.createChildOf(one).title("sub1");
+        Task sub1 = store.createChildOf(one);
+        sub1.<String> getProperty("title").setValue("sub1");
 
         assertEquals(ImmutableList.of(sub1), saved);
         assertEquals(ImmutableList.of(one), store.taskList);
@@ -258,7 +259,8 @@ public class FileBasedTaskStoreTest {
     @Test
     public void shouldRemoveSubtask() throws Exception {
         LinkedTask one = store.create().title("one");
-        Task sub1 = store.createChildOf(one).title("sub1");
+        Task sub1 = store.createChildOf(one);
+        sub1.<String> getProperty("title").setValue("sub1");
         resetSaved();
 
         store.removeChildOf(one, sub1);

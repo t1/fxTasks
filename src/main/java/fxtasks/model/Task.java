@@ -1,27 +1,13 @@
 package fxtasks.model;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.*;
-
-import com.google.common.collect.ImmutableList;
+import javafx.beans.property.Property;
 
 public interface Task {
 
     public TaskId id();
 
-    public StringProperty titleProperty();
-
-    public String title();
-
-    public Task title(String newTitle);
-
-    public BooleanProperty doneProperty();
-
-    public boolean done();
-
-    public Task done(boolean newDone);
-
-    public ImmutableList<Property<?>> getProperties();
+    public <T> Property<T> getProperty(String name);
 
     public void addListener(InvalidationListener invalidationListener);
 

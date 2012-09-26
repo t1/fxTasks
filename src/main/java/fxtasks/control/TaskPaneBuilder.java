@@ -73,14 +73,14 @@ public class TaskPaneBuilder {
 
     private TextField buildTitle() {
         TextField title = TextFieldBuilder.create().build();
-        title.textProperty().bindBidirectional(task.titleProperty());
+        title.textProperty().bindBidirectional(task.<String> getProperty("title"));
         return title;
     }
 
     private CheckBox buildDone() {
         CheckBox done = CheckBoxBuilder.create().build();
         HBox.setMargin(done, new Insets(3));
-        done.selectedProperty().bindBidirectional(task.doneProperty());
+        done.selectedProperty().bindBidirectional(task.<Boolean> getProperty("done"));
         return done;
     }
 }

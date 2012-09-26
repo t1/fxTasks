@@ -1,105 +1,93 @@
 package fxtasks.model;
 
+import java.util.Map;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 
 import javax.xml.bind.annotation.*;
 
-import lombok.EqualsAndHashCode;
-
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 /**
  * Fluent, but "Straight forward" JavaFX style bean, that's JAXB-marshallable.
  */
 @XmlRootElement
-@EqualsAndHashCode
 abstract class AbstractTask implements Task {
 
-    private final StringProperty title = new SimpleStringProperty(this, "title");
-    private final BooleanProperty done = new SimpleBooleanProperty(this, "done");
+    private final Map<String, Property<?>> properties = Maps.newTreeMap();
 
     public AbstractTask() {
-        for (Property<?> property : getProperties()) {
+        properties.put("title", new SimpleStringProperty(this, "title"));
+        properties.put("done", new SimpleBooleanProperty(this, "done"));
+
+        for (Property<?> property : properties.values()) {
             property.addListener(new LogChangeListener(property.getName()));
         }
     }
 
     @Override
-    public StringProperty titleProperty() {
-        return title;
+    @SuppressWarnings("unchecked")
+    public <T> Property<T> getProperty(String name) {
+        return (Property<T>) properties.get(name);
     }
 
-    @Override
-    public String title() {
-        return titleProperty().get();
-    }
+    // TODO generify the JAXB stuff
 
     @XmlElement
     private String getTitle() {
-        return title();
+        return getTitleProperty().getValue();
     }
 
     // required for JAXB
     @SuppressWarnings("unused")
-    private void setTitle(String newTitle) {
-        title(newTitle);
+    private void setTitle(String title) {
+        getTitleProperty().setValue(title);
     }
 
-    @Override
-    public AbstractTask title(String newTitle) {
-        titleProperty().set(newTitle);
-        return this;
-    }
-
-    @Override
-    public BooleanProperty doneProperty() {
-        return done;
-    }
-
-    @Override
-    public boolean done() {
-        return done.get();
+    private Property<String> getTitleProperty() {
+        return this.<String> getProperty("title");
     }
 
     @XmlElement
     private boolean getDone() {
-        return done();
+        return getDoneProperty().getValue();
     }
 
     // required for JAXB
     @SuppressWarnings("unused")
-    private void setDone(boolean newDone) {
-        done(newDone);
+    private void setDone(boolean done) {
+        getDoneProperty().setValue(done);
     }
 
-    @Override
-    public Task done(boolean newDone) {
-        done.set(newDone);
-        return this;
-    }
-
-    @Override
-    public ImmutableList<Property<?>> getProperties() {
-        return ImmutableList.<Property<?>> of(title, done);
+    private Property<Boolean> getDoneProperty() {
+        return this.<Boolean> getProperty("done");
     }
 
     @Override
     public void addListener(InvalidationListener invalidationListener) {
-        for (Property<?> property : getProperties()) {
+        for (Property<?> property : properties.values()) {
             property.addListener(invalidationListener);
         }
     }
 
     @Override
     public void removeListener(InvalidationListener invalidationListener) {
-        for (Property<?> property : getProperties()) {
+        for (Property<?> property : properties.values()) {
             property.removeListener(invalidationListener);
         }
     }
 
     @Override
     public String toString() {
-        return "<" + title.get() + (done() ? ",done" : "") + ">";
+        StringBuilder out = new StringBuilder(getClass().getSimpleName());
+        out.append('[');
+        for (Property<?> property : properties.values()) {
+            out.append(property.getName());
+            out.append('=');
+            out.append(property.getValue());
+        }
+        out.append(']');
+        return out.toString();
     }
 }

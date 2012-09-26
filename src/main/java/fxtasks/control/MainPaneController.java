@@ -111,7 +111,7 @@ public class MainPaneController implements Initializable {
     @FXML
     public void createTask() {
         collapseAllTasks();
-        taskStore.create().title("New Task");
+        taskStore.create().<String> getProperty("title").setValue("New Task");
     }
 
     public void collapseAllTasks() {
