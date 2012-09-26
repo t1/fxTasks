@@ -82,15 +82,12 @@ public class FileBasedTaskStore implements TaskStore {
     }
 
     private void load(TaskId id) throws IOException {
-        TaskId previousId = null;
         do {
             Path taskPath = path.resolve(id.asString());
             try (Reader reader = Files.newBufferedReader(taskPath, UTF_8)) {
                 LinkedTask task = JAXB.unmarshal(reader, LinkedTask.class);
-                assert task.previousId() == previousId;
                 task.resolver(taskIdResolver).id(id);
                 add(task);
-                previousId = id;
                 id = task.nextId();
             }
         } while (id != null);
@@ -115,7 +112,6 @@ public class FileBasedTaskStore implements TaskStore {
         } else {
             LinkedTask lastTask = lastTask();
             lastTask.next(task);
-            task.previous(lastTask);
             save(lastTask);
             add(task);
         }
@@ -163,73 +159,65 @@ public class FileBasedTaskStore implements TaskStore {
 
     @Override
     public void moveUp(Task task) {
-        if (taskList.indexOf(task) > 0) {
-            LinkedTask moving = (LinkedTask) task;
-            LinkedTask swapped = moving.previous();
-            LinkedTask previous = swapped.previous();
-            LinkedTask next = moving.next();
-
-            moveByOffset(moving, -1);
-
-            if (previous != null)
-                previous.next(moving);
-            moving.next(swapped);
-            swapped.next(next);
-            // next.next remains
-
-            // previous.previous remains
-            moving.previous(previous);
-            swapped.previous(moving);
-            if (next != null)
-                next.previous(swapped);
-
-            if (previous == null)
-                saveFirst();
-            else
-                save(previous);
-            save(swapped);
-            save(moving);
-            if (next != null) {
-                save(next);
-            }
-        } else {
+        int index = taskList.indexOf(task);
+        if (index == 0) {
             log.debug("{} is already first task", task);
+            return;
+        }
+
+        LinkedTask moving = (LinkedTask) task;
+        LinkedTask swapped = taskList.get(index - 1);
+        LinkedTask previous = (index == 1) ? null : taskList.get(index - 2);
+        LinkedTask next = moving.next();
+
+        moveByOffset(moving, -1);
+
+        if (previous != null)
+            previous.next(moving);
+        moving.next(swapped);
+        swapped.next(next);
+        // next.next remains
+
+        if (previous == null)
+            saveFirst();
+        else
+            save(previous);
+        save(swapped);
+        save(moving);
+        if (next != null) {
+            save(next);
         }
     }
 
     @Override
     public void moveDown(Task task) {
-        if (taskList.indexOf(task) + 1 < taskList.size()) {
-            LinkedTask moving = (LinkedTask) task;
-            LinkedTask previous = moving.previous();
-            LinkedTask swapped = moving.next();
-            LinkedTask next = swapped.next();
-
-            moveByOffset(moving, 1);
-
-            if (previous == null)
-                saveFirst();
-            else
-                previous.next(swapped);
-            moving.next(next);
-            swapped.next(moving);
-            // next.next remains
-
-            // previous.previous remains
-            moving.previous(swapped);
-            swapped.previous(previous);
-            if (next != null)
-                next.previous(moving);
-
-            if (previous != null)
-                save(previous);
-            save(moving);
-            save(swapped);
-            if (next != null) {
-                save(next);
-            }
-        } else {
+        int index = taskList.indexOf(task);
+        if (index + 1 >= taskList.size()) {
             log.debug("{} is already last task", task);
+            return;
+        }
+
+        LinkedTask moving = (LinkedTask) task;
+        LinkedTask previous = (index == 0) ? null : taskList.get(index - 1);
+        LinkedTask swapped = moving.next();
+        LinkedTask next = swapped.next();
+
+        moveByOffset(moving, 1);
+
+        if (previous == null)
+            saveFirst();
+        else
+            previous.next(swapped);
+        moving.next(next);
+        swapped.next(moving);
+        // next.next remains
+
+        if (previous != null)
+            save(previous);
+        save(moving);
+        save(swapped);
+        if (next != null) {
+            save(next);
         }
     }
 

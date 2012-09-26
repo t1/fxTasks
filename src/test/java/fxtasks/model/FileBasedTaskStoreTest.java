@@ -120,11 +120,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(four, two.next());
         assertEquals(two, three.next());
         assertEquals(null, four.next());
-
-        assertEquals(null, one.previous());
-        assertEquals(three, two.previous());
-        assertEquals(one, three.previous());
-        assertEquals(two, four.previous());
     }
 
     @Test
@@ -143,10 +138,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(three, one.next());
         assertEquals(null, two.next());
         assertEquals(two, three.next());
-
-        assertEquals(null, one.previous());
-        assertEquals(three, two.previous());
-        assertEquals(one, three.previous());
     }
 
     @Test
@@ -165,10 +156,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(three, one.next());
         assertEquals(one, two.next());
         assertEquals(null, three.next());
-
-        assertEquals(two, one.previous());
-        assertEquals(null, two.previous());
-        assertEquals(one, three.previous());
     }
 
     @Test
@@ -204,11 +191,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(four, two.next());
         assertEquals(two, three.next());
         assertEquals(null, four.next());
-
-        assertEquals(null, one.previous());
-        assertEquals(three, two.previous());
-        assertEquals(one, three.previous());
-        assertEquals(two, four.previous());
     }
 
     @Test
@@ -227,10 +209,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(three, one.next());
         assertEquals(one, two.next());
         assertEquals(null, three.next());
-
-        assertEquals(two, one.previous());
-        assertEquals(null, two.previous());
-        assertEquals(one, three.previous());
     }
 
     @Test
@@ -249,10 +227,6 @@ public class FileBasedTaskStoreTest {
         assertEquals(three, one.next());
         assertEquals(null, two.next());
         assertEquals(two, three.next());
-
-        assertEquals(null, one.previous());
-        assertEquals(three, two.previous());
-        assertEquals(one, three.previous());
     }
 
     @Test

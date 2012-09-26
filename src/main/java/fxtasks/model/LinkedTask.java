@@ -13,9 +13,6 @@ class LinkedTask extends AbstractTask {
     @XmlAttribute
     String nextId;
 
-    @XmlAttribute
-    String previousId;
-
     private transient Function<TaskId, LinkedTask> resolver;
 
     public LinkedTask resolver(Function<TaskId, LinkedTask> resolver) {
@@ -50,23 +47,6 @@ class LinkedTask extends AbstractTask {
     public LinkedTask next(LinkedTask next) {
         this.nextId = (next == null) ? null : next.id.asString();
         return this;
-    }
-
-    public TaskId previousId() {
-        return (previousId == null) ? null : TaskId.of(previousId);
-    }
-
-    public LinkedTask previous() {
-        return resolver.apply(previousId());
-    }
-
-    public LinkedTask previous(LinkedTask previous) {
-        this.previousId = (previous == null) ? null : previous.id.asString();
-        return this;
-    }
-
-    public boolean isFirst() {
-        return previousId == null;
     }
 
     public boolean isLast() {
